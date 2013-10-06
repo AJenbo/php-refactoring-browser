@@ -47,4 +47,39 @@ Feature: Optimize use
 
                      return $service;
             """
+    Scenario: Duplicate imports should not be allowed
+        Given a PHP File named "src/Foo.php" with:
+            """
+            <?php
 
+            class Foo
+            {
+                public function throw1()
+                {
+                    throw new \RuntimeException();
+                }
+
+                public function throw2()
+                {
+                    throw new \RuntimeException();
+                }
+            }
+            """
+        When I use refactoring "optimize-use" with:
+            | arg       | value       |
+            | file      | src/Foo.php |
+        Then the PHP File "src/Foo.php" should be refactored:
+            """
+            --- a/vfs://project/src/Foo.php
+            +++ b/vfs://project/src/Foo.php
+            @@ -3,5 +3,6 @@
+
+            +use RuntimeException;
+            +
+             class Foo
+            @@ -12,5 +12,5 @@
+
+            -        throw new \RuntimeException();
+            +        throw new RuntimeException();
+
+            """
